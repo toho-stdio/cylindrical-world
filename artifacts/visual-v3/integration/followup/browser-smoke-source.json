@@ -1,0 +1,117 @@
+{
+  "origin": "http://localhost:4203",
+  "input": "Browser-trusted CDP held key events, not physical hardware",
+  "results": [
+    {
+      "name": "no AudioContext before user gesture",
+      "status": "PASS"
+    },
+    {
+      "name": "trusted held A strafes at near-zero theta",
+      "status": "PASS",
+      "data": {
+        "before": [
+          -182,
+          134.3935398239161,
+          10.774478553311697
+        ],
+        "after": [
+          -181.56292747225098,
+          133.70934208483808,
+          14.918606633043975
+        ]
+      }
+    },
+    {
+      "name": "trusted Q descends toward terrain",
+      "status": "PASS",
+      "data": {
+        "before": 134.8247489687939,
+        "after": 137.5736489687939
+      }
+    },
+    {
+      "name": "trusted E ascends toward axis",
+      "status": "PASS",
+      "data": {
+        "before": 137.5736489687939,
+        "after": 134.8236489687939
+      }
+    },
+    {
+      "name": "trusted held W advances",
+      "status": "PASS",
+      "data": {
+        "before": -182,
+        "after": -177.46307345019233
+      }
+    },
+    {
+      "name": "all sustained gameplay keys were browser-trusted",
+      "status": "PASS",
+      "data": [
+        {
+          "key": "a",
+          "trusted": true
+        },
+        {
+          "key": "q",
+          "trusted": true
+        },
+        {
+          "key": "e",
+          "trusted": true
+        },
+        {
+          "key": "w",
+          "trusted": true
+        }
+      ]
+    },
+    {
+      "name": "trusted sound-button gesture constructs one audio graph",
+      "status": "PASS"
+    },
+    {
+      "name": "trusted audio re-enable resumes existing suspended context",
+      "status": "PASS"
+    },
+    {
+      "name": "destroy stops GPU submissions and closes GPU/audio resources",
+      "status": "PASS",
+      "data": {
+        "contexts": 1,
+        "audioCloses": 1,
+        "deviceDestroys": 1,
+        "submits": 266,
+        "keys": [
+          {
+            "key": "a",
+            "trusted": true
+          },
+          {
+            "key": "q",
+            "trusted": true
+          },
+          {
+            "key": "e",
+            "trusted": true
+          },
+          {
+            "key": "w",
+            "trusted": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "simulated unavailable WebGPU shows fallback",
+      "status": "PASS",
+      "data": {
+        "text": "STILLWATER · WORLD INITIALIZATION\nWe couldn’t open the habitat.\n\nWebGPU is unavailable in this browser. Open STILLWATER in a WebGPU-capable browser.\n\nThis experience requires a browser with WebGPU enabled. Try a current version of Chrome or Edge on a device with compatible graphics support.\n\nTRY AGAIN"
+      }
+    }
+  ],
+  "errors": [],
+  "url": "http://localhost:4203/"
+}

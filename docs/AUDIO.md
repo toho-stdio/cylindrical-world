@@ -1,0 +1,11 @@
+# STILLWATER procedural audio
+
+`src/audio.js` exports `createAudioEngine()`, which only creates ordinary JavaScript state. It does not inspect or construct an `AudioContext` until `start()` is called, so the host should call `start()` directly in a user-gesture handler. `start()` is async/idempotent; it rejects with a useful error when Web Audio is unavailable or cannot resume. The remaining API is `setEnabled(boolean)`, `setVolume(0..1)`, `update({ progress, position, wind, water })`, and `destroy()`. Updates and enable/volume changes are safe before start; enabling never creates a context.
+
+The soundscape is synthesized locally: a slowly revoiced four-oscillator pentatonic pad; filtered, locally generated looping noise for low wind, water, and high night insects; and occasional short sine-sweep bird calls. The ambient bus has a generated 2.8-second stereo noise impulse convolver, dry/wet mix, stereo drift and a compressor/limiter stage. `progress` moves the layers from daytime birds toward nighttime insects, while `wind` and `water` scale their respective layers. Position optionally shifts stereo balance. Master, layer and note transitions use smoothed gain/frequency ramps. A single self-rescheduling timer and at most three transient bird voices bound ongoing work; teardown clears the timer, stops/disconnects voices and closes the context.
+
+This is deliberately an ambient generative bed, not a realistic field recording or a composed song. Noise and bird timbres are synthetic; the stereo field is a gentle pan rather than a full 3D acoustic simulation. There are no downloaded sounds, external services, embedded recordings, or third-party audio libraries. The browser/device may still impose its own audio policy and output limits.
+
+## Lifecycle verification
+
+`node --test tests/audio.test.mjs` uses a small Web Audio graph double to check lazy allocation, simultaneous/idempotent start, gain mute/volume bounds, explicit resumption after suspension, recovery after unsupported-audio failure, day/night insect levels, and idempotent cleanup. These checks validate control/lifecycle logic, not browser audio output or subjective sound quality. Audio `progress` is **0 = day, 1 = night**; the experience's daylight fraction is the inverse, so the host passes `1 - state.progress`.

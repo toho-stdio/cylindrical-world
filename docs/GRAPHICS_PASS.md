@@ -1,0 +1,20 @@
+# Graphics and lighting pass
+
+## Implementation
+
+The renderer consumes `src/scene-contract.js`'s 48-byte vertex ABI: position, authored world normal, linear albedo, explicit material ID, wind weight, and phase. Material behavior is selected by the tag, never inferred from RGB. Geometry remains a single draw buffer.
+
+- `src/shaders/world.js` contains separate world, depth-shadow, procedural-sky, and post entry points. Surface lighting combines the shared point SUN `[-236, 0, 0]` with warm direct light, cool/neutral hemisphere fill, material roughness/specular response, distance haze, and material-specific handling. Leaf/grass tags get wrap/back-light transmission and subtle wind deformation; wood, stone, roof, terrain, metal, glass, and water have distinct responses and procedural high-frequency variation.
+- A native `depth32float` shadow map is rendered from a light camera centered 38 m ahead of the current view, with a 124 m square orthographic footprint. A 3x3 comparison-PCF kernel softens the depth-map edge. The map is 512/768/1024 pixels at low/medium/high quality. This is a view-focused approximation of the long source frustum, not a full-world or cascaded shadow system.
+- A full-screen WGSL gradient/noise sky adds a day/night horizon palette, restrained star points, and a subtle nebula field; the source halo is projected from the real shared SUN position and never substitutes a giant foreground disk. Water uses animated analytic micro-normal perturbation, Fresnel response, and a restrained sky-colored reflection/specular term; it is not ray-traced or a planar scene reflection.
+- The scene renders into an `rgba16float` linear HDR target. High/medium use 4x MSAA; low reduces resolution and uses 1x sampling. The final pass applies exposure/saturation, a restrained four-neighbor threshold bloom, ACES tone mapping, and a mild vignette. Render-target size is capped at two million pixels; size/quality transitions recreate and destroy HDR/depth/shadow resources. `destroy()` releases the remaining GPU allocations.
+- Shader compilation diagnostics are checked before setup. GPU validation is captured during setup; uncaptured validation/device-loss errors are surfaced on the next render rather than silently ignored.
+
+The user's Sunlight, Atmosphere, Exposure, Saturation, Wind, Water, Foliage, Stars, and Quality settings each feed corresponding renderer parameters. The Audio setting remains handled by the application audio engine.
+
+## Validation
+
+- `tests/graphics.test.mjs` protects the shared vertex ABI, material IDs, SUN constants, and presence of the renderer's explicit material/shadow/HDR paths. It is a source-level regression check, not visual or GPU acceptance.
+- A native WebGPU browser compiled the WGSL module and created the shadow, sky/world 1x and 4x, and post pipelines with no shader diagnostics. The full world then rendered at 1440×900 in high quality with no validation errors and a live-reported 60 FPS in the capture session. Low→high quality changes and 900×700↔1440×900 resize were exercised without GPU errors. The final 65.1 MB world vertex buffer (62.1 MiB) fit within the device allocation and the renderer's separate submission/layout rules avoid shadow-texture read/write conflicts.
+- Independent 1440×900 native captures after the final environment reload are `artifacts/visual-v2/graphics/18-riverbend-door-clear-native.png`, `16-aqueduct-final-native.png`, and `14-far-light-clean-star-tuned.png`. The latter verifies brighter sparse stars with the open river/horizon silhouette preserved. These are iteration evidence, not a claim of photorealism or final art approval; integration/review can recapture their own final source/standalone QA. The initial capture exposed an incorrect CPU float-count/byte-stride check and two WebGPU shadow-pass hazards; all were corrected before the working captures.
+- Full `npm test` passed 23/23 after geometry and camera changes; `npm run build`, JavaScript syntax checks, and the graphics-specific tests passed.
